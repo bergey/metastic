@@ -1,15 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+module Import where
+
 import Control.Applicative
 import Control.Lens
 
-import Data.Aeson
-import Data.HashMap.Strict
+import Data.Aeson hiding (object)
+import qualified Data.HashMap.Strict as H
 import Data.Attoparsec.Number
 
-import Network.URI
-import Data.ByteString.Lazy as BS
-import Data.Text as T
+import qualified Data.ByteString.Lazy as BS
+import Data.ByteString.Lazy (ByteString)
+import qualified Data.Text as T
+import Data.Text (Text)
 
 import System.Directory
 import System.FilePath
@@ -19,19 +22,8 @@ import System.Process
 import Data.RDF
 import Data.RDF.TriplesGraph
 import Data.RDF.Namespace
-import Text.RDF.RDF4H.TurtleSerializer
-import Text.RDF.RDF4H.NTriplesSerializer
 
-globalPrefix :: PrefixMappings
-globalPrefix = ns_mappings []
-
-baseURL :: Maybe BaseUrl
-baseURL = Just $ BaseUrl "file://"
-
-testFile = "/home/bergey/Music/Simon & Garfunkel/Sounds Of Silence/meta.json"
-
-testJSON :: IO (Maybe Value)
-testJSON = decode <$> BS.readFile testFile
+import Util
 
 toText :: Value -> Text
 toText (String t) = t
@@ -39,42 +31,22 @@ toText (Number (I i)) = T.pack . show $ i
 toText (Number (D d)) = T.pack . show $ d
 toText val = T.pack . show $ val
 
-lookupVerb :: Text -> Node
-lookupVerb t = unode t
-
 withFixedSubject :: Text -> Maybe Value -> [Triple]
-withFixedSubject s (Just (Object map)) = [Triple (unode  s)
+withFixedSubject s (Just (Object map)) = [triple (unode  s)
                                           (lookupVerb $ fst po)
-                                          (LNode . PlainL . toText . snd $ po) | po <- toList map] 
+                                          (LNode . PlainL . toText . snd $ po) | po <- H.toList map]
 withFixedSubject _ _ = []
 
-turtleFname :: FilePath -> FilePath
-turtleFname f = replaceExtension f "ttl"
-
-escapePath :: String -> String
-escapePath = escapeURIString (flip Prelude.notElem  " &#?@()")
-
-fileURI :: String -> IO Text
-fileURI f = do
-  path <- canonicalizePath f
-  return $ T.append "file://" (T.pack . escapePath $ path)
+tika :: FilePath -> IO (Maybe Value)
+tika f = do
+  let p = (proc "tika" ["-j", f]) {std_out=CreatePipe}
+  (_, Just out, _, _) <- createProcess p
+  decode <$> BS.hGetContents out
 
 readFileMeta :: FilePath -> IO TriplesGraph
 readFileMeta f = do
-  j <- decode <$> BS.readFile f
-  s <- fileURI (turtleFname f)
+  j <- tika f
+  s <- fileURI f
   let tris = withFixedSubject s j
       graph = mkRdf tris baseURL globalPrefix :: TriplesGraph
   return graph
-
-writeTurtle :: FilePath -> IO ()
-writeTurtle f = do
-  rdf <- readFileMeta f
-  withFile (turtleFname f) WriteMode $ \h -> 
-    -- hWriteRdf (TurtleSerializer Nothing globalPrefix) h rdf
-    writeRdf NTriplesSerializer rdf
-
-importFileMeta :: FilePath -> IO ProcessHandle
-importFileMeta f = do
-  writeTurtle f
-  runCommand $ "4s-import test '" ++ turtleFname f ++ "'"
