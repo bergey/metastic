@@ -3,7 +3,7 @@
 module Refile where
 
 import Control.Applicative
-import Data.Text as T
+import qualified Data.Text as T
 
 import System.Directory
 import System.FilePath
@@ -27,3 +27,9 @@ fileByDate directoryRoot f = do
           let dirPath = directoryRoot </> dir
           createDirectoryIfMissing True dirPath
           renameFile f (dirPath </> takeFileName f)
+
+
+example :: FilePath -> IO ()
+example fromDir = do
+  files <- getDirectoryContents fromDir
+  mapM_ (fileByDate "photos" . (fromDir </>)) $ filter (matchExtension ".jpg") files
