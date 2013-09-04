@@ -13,5 +13,12 @@ writeTurtle :: FilePath -> IO ()
 writeTurtle f = do
   rdf <- readFileMeta f
   withFile (turtleFname f) WriteMode $ \h ->
-    -- hWriteRdf (TurtleSerializer Nothing globalPrefix) h rdf
-    writeRdf NTriplesSerializer rdf
+    writeRdf (TurtleSerializer Nothing globalPrefix) rdf
+
+fWriteTurtle :: FilePath -> FilePath -> IO ()
+fWriteTurtle t f = withFile t AppendMode $ \h -> hWriteTurtle h f
+
+hWriteTurtle :: Handle -> FilePath -> IO ()
+hWriteTurtle h f = do
+  rdf <- readFileMeta f
+  hWriteRdf (TurtleSerializer Nothing globalPrefix) h rdf
