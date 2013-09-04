@@ -15,7 +15,7 @@ import Export
 directoryRoot = "/home/bergey/Library/photos"
 
 mp3 = "/home/bergey/Music/Simon & Garfunkel/Sounds Of Silence/01.he Sounds Of Silence.mp3"
-jpg = "/home/bergey/Library/photos/IMG_1734.JPG"
+jpg = "/home/bergey/Library/photos/ciderpress.jpg"
 
 main :: IO ()
 main = do
