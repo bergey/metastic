@@ -20,12 +20,9 @@ jpg = "/home/bergey/Library/photos/ciderpress.jpg"
 main :: IO ()
 main = do
   args <- getArgs
-  case length args of
-    0 -> T.putStrLn helpText
-    _ ->
-      case head args of
-        "show" -> showArgs $ tail args
-        otherwise -> T.putStrLn helpText
+  case args of
+      ("show":_) -> showArgs $ tail args
+      otherwise -> T.putStrLn helpText
 
 helpText = "usage: meta MODE MODEARGS\n\
 \\n\
