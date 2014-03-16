@@ -17,11 +17,6 @@ import           Network.URI hiding (query)
 
 import           Data.RDF
 
-subject,verb,object :: Triple -> Node
-subject (Triple s _ _) = s
-verb    (Triple _ v _) = v
-object  (Triple _ _ o) = o
-
 lText :: LValue -> Text
 lText (PlainL t) = t
 lText (PlainLL t _) = t
