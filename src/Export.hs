@@ -3,22 +3,20 @@ module Export where
 import System.IO
 
 import Data.RDF
-import Text.RDF.RDF4H.TurtleSerializer
-import Text.RDF.RDF4H.NTriplesSerializer
 
 import Util
-import Import
 
-writeTurtle :: FilePath -> IO ()
-writeTurtle f = do
-  rdf <- readFileMeta f
-  withFile (turtleFname f) WriteMode $ \h ->
-    writeRdf (TurtleSerializer Nothing globalPrefix) rdf
+writeTurtle :: RDF r => r -> IO ()
+writeTurtle = hWriteTurtle stdin
 
-fWriteTurtle :: FilePath -> FilePath -> IO ()
-fWriteTurtle t f = withFile t AppendMode $ \h -> hWriteTurtle h f
+fWriteTurtle :: RDF r => FilePath -> r -> IO ()
+fWriteTurtle t rdf = withFile t AppendMode $ \h -> hWriteTurtle h rdf
 
-hWriteTurtle :: Handle -> FilePath -> IO ()
-hWriteTurtle h f = do
-  rdf <- readFileMeta f
-  hWriteRdf (TurtleSerializer Nothing globalPrefix) h rdf
+hWriteTurtle :: RDF r => Handle -> r -> IO ()
+hWriteTurtle = hWriteRdf (TurtleSerializer Nothing globalPrefix)
+
+indexFile :: FilePath
+indexFile = "/home/bergey/.metastic/index.ttl"
+
+appendIndex :: TriplesGraph -> IO ()
+appendIndex = fWriteTurtle indexFile

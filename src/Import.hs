@@ -7,7 +7,9 @@ import Control.Lens
 
 import Data.Aeson hiding (object)
 import qualified Data.HashMap.Strict as H
-import Data.Attoparsec.Number
+import Data.Scientific
+import Data.Text.Lazy (toStrict)
+import Data.Text.Lazy.Builder (toLazyText)
 
 import qualified Data.ByteString.Lazy as BS
 import Data.ByteString.Lazy (ByteString)
@@ -27,8 +29,7 @@ import Util
 
 toText :: Value -> Text
 toText (String t) = t
-toText (Number (I i)) = T.pack . show $ i
-toText (Number (D d)) = T.pack . show $ d
+toText (Number n) = toStrict . toLazyText . scientificBuilder $ n
 toText val = T.pack . show $ val
 
 withFixedSubject :: Text -> Maybe Value -> [Triple]
