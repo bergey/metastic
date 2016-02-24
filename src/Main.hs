@@ -22,6 +22,7 @@ main = do
   case args of
       ("show":rest)  -> showArgs rest
       ("index":rest) -> index rest
+      -- ("find":rest) -> find rest
       _              -> T.putStrLn helpText
 
 helpText :: T.Text

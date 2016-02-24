@@ -55,7 +55,7 @@ fileURI f = do
 turtleFname :: FilePath -> FilePath
 turtleFname f = replaceExtension f "ttl"
 
-instance RDF r => Monoid r where
+instance Monoid TriplesGraph where
     mempty = empty
     mappend a b =
         mkRdf (triplesOf a ++ triplesOf b) ns prefices where
@@ -67,3 +67,11 @@ instance RDF r => Monoid r where
               (Nothing, u) -> u
           prefices = case (prefixMappings a, prefixMappings b) of
               (PrefixMappings a', PrefixMappings b') -> PrefixMappings (M.union a' b')
+
+simpleNode :: Node -> T.Text
+simpleNode (UNode t) = t
+simpleNode (BNode t) = t
+simpleNode (BNodeGen i) = T.pack . show $ i
+simpleNode (LNode (PlainL t)) = t
+simpleNode (LNode (PlainLL t _)) = t
+simpleNode (LNode (TypedL  t _)) = t
